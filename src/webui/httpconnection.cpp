@@ -247,6 +247,16 @@ void HttpConnection::respond() {
     return;
   }
 
+  // Attempt to logout, may not work on all browsers
+  if (url.endsWith("logout")) {
+    m_generator.setStatusLine(401, "Unauthorized");
+    m_generator.setContentTypeByExt("html");
+    m_generator.setMessage(QString("You have been logged out. <a href=\"/\">Log back in.</a>").toUtf8());
+    m_generator.setContentEncoding(m_parser.acceptsEncoding());
+    write();
+    return;
+  }
+
   QStringList list = url.split('/', QString::SkipEmptyParts);
   if (list.contains(".") || list.contains("..")) {
     respondNotFound();
