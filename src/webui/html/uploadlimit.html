@@ -4,51 +4,47 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<title>_(Torrent Upload Speed Limiting)</title>
 	<link rel="stylesheet" href="css/style.css" type="text/css" />
-	<link rel="stylesheet" href="css/mocha.css" type="text/css" />
 	<script type="text/javascript" src="scripts/mootools-1.2-core-yc.js" charset="utf-8"></script>
 	<script type="text/javascript" src="scripts/mootools-1.2-more.js" charset="utf-8"></script>
 	<script type="text/javascript" src="scripts/mocha-yc.js" charset="utf-8"></script>
 	<script type="text/javascript" src="scripts/parametrics.js" charset="utf-8"></script>
 </head>
 <body>
-<div style="width: 100%; text-align: center; margin: 0 auto;">
-<div id="uplimitSlider" class="slider">
-	<div id="uplimitUpdate" class="update">_(Upload limit:) <span id="uplimitUpdatevalue" class="updatevalue">0</span> <span id="upLimitUnit">_(KiB/s)</span></div>
-	<div class="sliderWrapper">
-		<div id="uplimitSliderknob" class="sliderknob"></div>
-		<div id="uplimitSliderarea" class="sliderarea"></div>
-	</div>
-	<div class="clear"></div>
-</div>
+	<form class="sliderForm">
+		<div class="sliderWrapper"></div>
+		<div class="sliderInput">
+			<input id="limitValue" type="text" value="1 _(KiB/s)" style="width: 100%; box-sizing: border-box;" />
+		</div>
+
+		<div style="clear: both; float: right; margin-top: 5px">
+			<input type="submit" value="_(OK)"/>
+			<input type="button" value="_(Cancel)" onclick="window.parent.closeWindows();"/>
+		</div>
+	</form>
+
 <script type="text/javascript">
+(function () {
 	var hash = new URI().getData('hash');
-	setUpLimit = function() {
-		var limit = $("uplimitUpdatevalue").get('html').toInt() * 1024;
-		if(hash == "global") {
-			new Request({url: 'command/setGlobalUpLimit',
-				    method: 'post',
-				    data: {'limit': limit},
-				    onComplete: function() {
-					window.parent.closeWindows();
-				    }
-			}).send();
-		}else {
-			new Request({url: 'command/setTorrentUpLimit',
-				    method: 'post',
-				    data: {'hash': hash, 'limit': limit},
-				    onComplete: function() {
-					window.parent.closeWindows();
-				    }
-			}).send();
-		}
-	}
-</script>
-<input type="button" value="_(Apply)" onclick="setUpLimit()"/>
-</div>
+	
+	$$('form.sliderForm').addEvent('submit', function (event) {
+		event.stop();
 
-<script type="text/javascript">
-	MochaUI.addUpLimitSlider(hash);
-</script>
+		var limit = Number.max(0, $("limitValue").get('value').toInt() * 1024);
+		new Request({
+			url: hash === 'global' ? 'command/setGlobalUpLimit' : 'command/setTorrentUpLimit',
+			method: 'post',
+			data: {
+				'hash': hash,
+				'limit': limit
+			},
+			onComplete: function () {
+				window.parent.closeWindows();
+			}
+		}).send();
+	});
 
+	MochaUI.setupSlider('Up', hash);
+})();
+</script>
 </body>
 </html>
